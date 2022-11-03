@@ -8,6 +8,11 @@ namespace HelloWorld
     {
         void OnGUI()
         {
+            if(NetworkCommandLine.thisIsHost == true)
+            {
+                return;
+            }
+
             GUILayout.BeginArea(new Rect(10, 10, 300, 300));
             if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
             {

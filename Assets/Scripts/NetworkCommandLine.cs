@@ -6,6 +6,13 @@ public class NetworkCommandLine : MonoBehaviour
 {
     private NetworkManager netManager;
 
+    public static bool thisIsHost = false;
+
+    private void Awake()
+    {
+        Application.targetFrameRate = 30;
+    }
+
     void Start()
     {
         netManager = GetComponentInParent<NetworkManager>();
@@ -19,9 +26,11 @@ public class NetworkCommandLine : MonoBehaviour
             switch (mlapiValue)
             {
                 case "server":
+                    thisIsHost = true;
                     netManager.StartServer();
                     break;
                 case "host":
+                    thisIsHost = true;
                     netManager.StartHost();
                     break;
                 case "client":
