@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 
 public class NetworkCommandLine : MonoBehaviour
@@ -20,6 +21,36 @@ public class NetworkCommandLine : MonoBehaviour
         if (Application.isEditor) return;
 
         var args = GetCommandlineArgs();
+
+        //使用命令行设置服务器ip及端口
+
+        string listenAddress;
+        string address;
+        string port;
+        args.TryGetValue("-listenAddress", out listenAddress);
+        args.TryGetValue("-address", out address);
+        args.TryGetValue("-port", out port);
+
+        if(listenAddress == null || listenAddress.Trim().Length == 0)
+        {
+            listenAddress = "0.0.0.0";
+        }
+        if (address == null || address.Trim().Length == 0)
+        {
+            address = "127.0.0.1";
+        }
+        if (port == null || port.Trim().Length == 0)
+        {
+            port = "7777";
+        }
+        ushort portNum = 0;
+        ushort.TryParse(port,out portNum);
+
+        var ut = netManager.NetworkConfig.NetworkTransport as UnityTransport;
+        if (ut != null)
+        {
+            ut.SetConnectionData(address, portNum,listenAddress);
+        }
 
         if (args.TryGetValue("-mlapi", out string mlapiValue))
         {
