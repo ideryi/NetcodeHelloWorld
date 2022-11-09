@@ -1,11 +1,19 @@
 
 using Unity.Netcode;
+using Unity.Networking.Transport.Utilities;
 using UnityEngine;
 
 namespace HelloWorld
 {
     public class HelloWorldManager : MonoBehaviour
     {
+        public static double latency = 0;
+
+        public static long totalReceive = 0;
+        public static long totalSend = 0;
+        public static long frameReceive = 0;
+        public static long frameSend = 0;
+
         void OnGUI()
         {
             if(NetworkCommandLine.thisIsHost == true)
@@ -43,6 +51,18 @@ namespace HelloWorld
             GUILayout.Label("Transport: " +
                 NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetType().Name);
             GUILayout.Label("Mode: " + mode);
+
+            GUILayout.Label("Latency: " + latency.ToString());
+            //GUILayout.Label("Total Receive: " + totalReceive.ToString());
+            //GUILayout.Label("Total Send: " + totalSend.ToString());
+
+            GUILayout.Label($"Total Bytes Received:{HelloWorldManager.totalReceive} byte");
+            GUILayout.Label($"Total Bytes Sent: {HelloWorldManager.totalSend} byte");
+
+            GUILayout.Label($"Frame Bytes Received:{HelloWorldManager.frameReceive} byte");
+            GUILayout.Label($"Frame Bytes Sent: {HelloWorldManager.frameSend} byte");
+
+            //ReliableUtility.Statistics;
         }
 
         static void SubmitNewPosition()
