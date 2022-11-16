@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <DisplayElements>k__BackingField:
   - <FieldsInitialized>k__BackingField: 1
-    <Type>k__BackingField: 0
+    <Type>k__BackingField: 1
     <Label>k__BackingField: Total Bytes Sent and Received
     <Stats>k__BackingField:
     - <TypeIndex>k__BackingField: 0

@@ -23,7 +23,9 @@ public class NetworkCommandLine : MonoBehaviour
 
         listenAddress = "0.0.0.0";
         //address = "172.21.109.60";
+        //address = "43.139.96.90";
         address = "127.0.0.1";
+        //address = "192.168.0.106";
         port = "10000";
         portNum = 10000;
     }

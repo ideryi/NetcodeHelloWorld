@@ -4,20 +4,78 @@ using System.Text;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEditor;
+using System;
+using Unity.Netcode;
+using Unity.VisualScripting;
 
-public class ExampleScript : MonoBehaviour
+//[CustomEditor(typeof(NetStatistics))]
+public class NetStatistics : MonoBehaviour
 {
+    public bool showGUI = true;
+    public int x = 0;
+    public int y = 300;
+    public int w = 250;
+    public int h = 100;
+
     string statsText;
-    ProfilerRecorder systemMemoryRecorder;
-    ProfilerRecorder gcMemoryRecorder;
-    ProfilerRecorder mainThreadTimeRecorder;
     ProfilerRecorder TotalBytesReceived;
     ProfilerRecorder TotalBytesSent;
 
-    //static long totalReceive = 0;
-    //static long totalSend = 0;
-    //static long frameReceive = 0;
-    //static long frameSend = 0;
+    public long totalReceive = 0;
+    public long totalSend = 0;
+    public long frameReceive = 0;
+    public long frameSend = 0;
+
+    public double lantency = 0;
+    //public double lantency2 = 0;
+
+
+    void OnEnable()
+    {
+        TotalBytesReceived = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Bytes Received");
+        TotalBytesSent = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Bytes Sent");
+        //EnumerateProfilerStats();
+    }
+
+    void OnDisable()
+    {
+        TotalBytesReceived.Dispose();
+        TotalBytesSent.Dispose();
+    }
+
+    void Update()
+    {
+        var sb = new StringBuilder(500);
+
+        ProcessReceiveOrSend(TotalBytesReceived);
+        ProcessReceiveOrSend(TotalBytesSent, false);
+
+        if(showGUI)
+        {
+            //lantency = HelloWorldPlayer.lantency;
+            //lantency2 = HelloWorldPlayer.lantency;
+
+            lantency = LantencyTest.lantency;
+
+            sb.AppendLine($"Lentancy:{lantency} ms");
+            //sb.AppendLine($"Lentancy2:{lantency2} ms");
+
+            sb.AppendLine($"Total Bytes Received:{totalReceive} byte");
+            sb.AppendLine($"Total Bytes Sent: {totalSend} byte");
+
+            sb.AppendLine($"Frame Bytes Received:{frameReceive} byte");
+            sb.AppendLine($"Frame Bytes Sent: {frameSend} byte");
+
+            statsText = sb.ToString();
+        }
+    }
+
+    void OnGUI()
+    {
+        if(showGUI)
+            GUI.TextArea(new Rect(x, y, w, h), statsText);
+    }
 
     static double GetRecorderFrameAverage(ProfilerRecorder recorder)
     {
@@ -39,11 +97,11 @@ public class ExampleScript : MonoBehaviour
     }
 
 
-    static void ProcessReceiveOrSend(ProfilerRecorder recorder,bool isReceive = true)
+    void ProcessReceiveOrSend(ProfilerRecorder recorder, bool isReceive = true)
     {
         var samplesCount = recorder.Capacity;
         if (samplesCount == 0)
-            return ;
+            return;
 
         long frmaeTotal = 0;
         unsafe
@@ -52,57 +110,30 @@ public class ExampleScript : MonoBehaviour
             recorder.CopyTo(samples, samplesCount);
             for (var i = 0; i < samplesCount; ++i)
             {
-                if(samples[i].Value > 0)
+                if (samples[i].Value > 0)
                 {
                     frmaeTotal += samples[i].Value;
+                    Debug.Log("++++++++++++++++++++" + samples[i].Value.ToString());
+                }
+                else
+                {
+                    Debug.Log("--------------------" + samples[i].Value.ToString());
                 }
             }
         }
 
-        if(isReceive)
+        if (isReceive)
         {
-            HelloWorldManager.frameReceive = frmaeTotal;
-            HelloWorldManager.totalReceive += frmaeTotal;
+            frameReceive = frmaeTotal;
+            totalReceive += frmaeTotal;
         }
         else
         {
-            HelloWorldManager.frameSend = frmaeTotal;
-            HelloWorldManager.totalSend += frmaeTotal;
+            frameSend = frmaeTotal;
+            totalSend += frmaeTotal;
         }
-    }
 
-    void OnEnable()
-    {
-        TotalBytesReceived = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Bytes Received");
-        TotalBytesSent = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Bytes Sent");
-        //EnumerateProfilerStats();
-    }
-
-    void OnDisable()
-    {
-        TotalBytesReceived.Dispose();
-        TotalBytesSent.Dispose();
-    }
-
-    void Update()
-    {
-        var sb = new StringBuilder(500);
-
-        ProcessReceiveOrSend(TotalBytesReceived);
-        ProcessReceiveOrSend(TotalBytesReceived,false);
-
-        sb.AppendLine($"Total Bytes Received:{HelloWorldManager.totalReceive} byte");
-        sb.AppendLine($"Total Bytes Sent: {HelloWorldManager.totalSend} byte");
-
-        sb.AppendLine($"Frame Bytes Received:{HelloWorldManager.frameReceive} byte");
-        sb.AppendLine($"Frame Bytes Sent: {HelloWorldManager.frameSend} byte");
-
-        statsText = sb.ToString();
-    }
-
-    void OnGUI()
-    {
-        GUI.TextArea(new Rect(800, 100, 250, 100), statsText);
+        Debug.Log(string.Format("totalReceive: {0}\ntotalSend: {1}\nframeReceive: {2}\nframeSend: {3}\n",totalReceive,totalSend,frameReceive,frameSend));
     }
 
     struct StatInfo
@@ -154,3 +185,6 @@ public class ExampleScript : MonoBehaviour
         Debug.Log(info);
     }
 }
+
+
+

@@ -1,25 +1,37 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace HelloWorld
 {
     public class HelloWorldPlayer : NetworkBehaviour
     {
         public NetworkVariable<Vector3> Position = new NetworkVariable<Vector3>();
-        Vector3 pos = new Vector3();
+        //Vector3 pos = new Vector3();
 
         public static bool firstTime = true;
         DateTime start = new DateTime();
         DateTime end = new DateTime();
-        double lantency = 0;
+        DateTime start2 = new DateTime();
+        DateTime end2 = new DateTime();
+        public static double lantency = 0;
+        public static double lantency2 = 0;
 
         static bool first = true;
+
+        void OnValueChangedDelegate(Vector3 previousValue, Vector3 newValue)
+        {
+            Debug.Log("OnValueChangedDelegate");
+            end2 = DateTime.Now;
+            lantency2 = (end2 - start2).TotalMilliseconds / 2;
+        }
 
         public override void OnNetworkSpawn()
         {
             if (IsOwner)
             {
+                Position.OnValueChanged = OnValueChangedDelegate;
                 Move();
             }
         }
@@ -34,6 +46,8 @@ namespace HelloWorld
             }
             else
             {
+                Debug.Log("Move");
+                start2 = DateTime.Now;
                 SubmitPositionRequestServerRpc();
             }
         }
@@ -41,62 +55,47 @@ namespace HelloWorld
         [ServerRpc]
         void SubmitPositionRequestServerRpc(ServerRpcParams rpcParams = default)
         {
-            Position.Value = pos = GetRandomPositionOnPlane();
+            Position.Value = GetRandomPositionOnPlane();
         }
 
         static Vector3 GetRandomPositionOnPlane()
         {
-            //return new Vector3(UnityEngine.Random.Range(-3f, 3f), 1f, UnityEngine.Random.Range(-3f, 3f));
-            if(first)
-            {
-                return new Vector3(1,1,1);
-            }
-            else
-            {
-                return new Vector3(-1, 1, -1);
-            }
-            first = !first;
+            return new Vector3(UnityEngine.Random.Range(-3f, 3f), 1f, UnityEngine.Random.Range(-3f, 3f));
         }
 
         [ServerRpc]
         void callServerRequestServerRpc(ServerRpcParams rpcParams = default)
         {
-            Debug.Log("callServerRequestServerRpc");
-            Debug.Log("to callClientRequestClientRpc");
-            callClientRequestClientRpc(Position.Value);
-            Debug.Log("finish callClientRequestClientRpc");
+            callClientRequestClientRpc();
         }
 
         [ClientRpc]
-        void callClientRequestClientRpc(Vector3 pos,ClientRpcParams rpcParams = default)
+        void callClientRequestClientRpc(ClientRpcParams rpcParams = default)
         {
-            Debug.Log("callClientRequestClientRpc");
             end = DateTime.Now;
             lantency = (end - start).TotalMilliseconds / 2;
-
-            this.pos = pos;
         }
 
-        double getLatency()
+        void getLatency()
         {
             start = DateTime.Now;
 
             var playerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
             var player = playerObject.GetComponent<HelloWorldPlayer>();
             player.callServerRequestServerRpc();
-
-            return lantency;
         }
 
         void Update()
         {
-            //transform.position = Position.Value;
+            Debug.Log("Update");
 
-            transform.position = pos;
+            transform.position = Position.Value;
 
             if (NetworkManager.Singleton.IsClient)
             {
-                //HelloWorldManager.latency = getLatency();
+                getLatency();
+                //HelloWorldManager.latency = lantency;
+                //HelloWorldManager.latency2 = lantency2;
             }
         }
     }

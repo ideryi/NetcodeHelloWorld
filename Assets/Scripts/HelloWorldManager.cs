@@ -7,12 +7,19 @@ namespace HelloWorld
 {
     public class HelloWorldManager : MonoBehaviour
     {
-        public static double latency = 0;
+        //public static double latency = 0;
+        //public static double latency2 = 0;
 
         public static long totalReceive = 0;
         public static long totalSend = 0;
         public static long frameReceive = 0;
         public static long frameSend = 0;
+        NetStatistics stat = null;
+
+        private void Awake()
+        {
+            stat = GetComponentInParent<NetStatistics>();
+        }
 
         void OnGUI()
         {
@@ -28,6 +35,17 @@ namespace HelloWorld
             }
             else
             {
+                if(stat != null)
+                {
+                    //latency = stat.latency;
+                    //latency2 = stat.latency2;
+
+                    totalReceive = stat.totalReceive;
+                    totalSend = stat.totalSend;
+                    frameReceive = stat.frameReceive;
+                    frameSend = stat.frameSend;
+                }
+
                 StatusLabels();
 
                 SubmitNewPosition();
@@ -52,7 +70,8 @@ namespace HelloWorld
                 NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetType().Name);
             GUILayout.Label("Mode: " + mode);
 
-            GUILayout.Label("Latency: " + latency.ToString());
+            //GUILayout.Label("Latency: " + latency.ToString());
+            //GUILayout.Label("Latency2: " + latency2.ToString());
             //GUILayout.Label("Total Receive: " + totalReceive.ToString());
             //GUILayout.Label("Total Send: " + totalSend.ToString());
 
